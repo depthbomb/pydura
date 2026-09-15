@@ -20,7 +20,7 @@ _UNITS = (
 _MULTIPLIERS = {alias: multiplier for _, multiplier, aliases in _UNITS for alias in aliases.split()}
 _MULTIPLIERS.update({'µſ': 1_000, 'μſ': 1_000})
 _FORMAT_UNITS = tuple((name, name + 's', multiplier) for name, multiplier, _ in _UNITS)
-_DECIMAL_SCALES: tuple[int, ...] = tuple(10**exponent for exponent in range(65))
+_DECIMAL_SCALES: tuple[int, ...] = tuple(10 ** exponent for exponent in range(65))
 _CONSTRUCTOR_UNITS = (
     'weeks',
     'days',
@@ -31,7 +31,6 @@ _CONSTRUCTOR_UNITS = (
     'microseconds',
     'nanoseconds',
 )
-
 
 @dataclass(frozen=True, slots=True, init=False, order=True)
 class Duration:
@@ -46,16 +45,16 @@ class Duration:
     nanoseconds: int
 
     def __init__(
-        self,
-        *,
-        weeks: int = 0,
-        days: int = 0,
-        hours: int = 0,
-        minutes: int = 0,
-        seconds: int = 0,
-        milliseconds: int = 0,
-        microseconds: int = 0,
-        nanoseconds: int = 0,
+            self,
+            *,
+            weeks: int = 0,
+            days: int = 0,
+            hours: int = 0,
+            minutes: int = 0,
+            seconds: int = 0,
+            milliseconds: int = 0,
+            microseconds: int = 0,
+            nanoseconds: int = 0,
     ) -> None:
         amounts = (weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds)
         if not all(type(amount) is int for amount in amounts):
@@ -65,8 +64,8 @@ class Duration:
         total_hours = (weeks * 7 + days) * 24 + hours
         total_seconds = (total_hours * 60 + minutes) * 60 + seconds
         total = (
-            (total_seconds * 1_000 + milliseconds) * 1_000 + microseconds
-        ) * 1_000 + nanoseconds
+                        (total_seconds * 1_000 + milliseconds) * 1_000 + microseconds
+                ) * 1_000 + nanoseconds
 
         object.__setattr__(self, 'nanoseconds', total)
 
@@ -86,10 +85,12 @@ class Duration:
         return _from_nanoseconds(abs(self.nanoseconds))
 
     @overload
-    def __add__(self, other: Duration | timedelta) -> Duration: ...
+    def __add__(self, other: Duration | timedelta) -> Duration:
+        ...
 
     @overload
-    def __add__(self, other: datetime) -> datetime: ...
+    def __add__(self, other: datetime) -> datetime:
+        ...
 
     def __add__(self, other: object) -> Duration | datetime | NotImplementedType:
         if isinstance(other, datetime):
@@ -104,10 +105,12 @@ class Duration:
         return NotImplemented
 
     @overload
-    def __radd__(self, other: Duration | timedelta) -> Duration: ...
+    def __radd__(self, other: Duration | timedelta) -> Duration:
+        ...
 
     @overload
-    def __radd__(self, other: datetime) -> datetime: ...
+    def __radd__(self, other: datetime) -> datetime:
+        ...
 
     def __radd__(self, other: object) -> Duration | datetime | NotImplementedType:
         if isinstance(other, (Duration, timedelta, datetime)):
@@ -125,10 +128,12 @@ class Duration:
         return NotImplemented
 
     @overload
-    def __rsub__(self, other: Duration | timedelta) -> Duration: ...
+    def __rsub__(self, other: Duration | timedelta) -> Duration:
+        ...
 
     @overload
-    def __rsub__(self, other: datetime) -> datetime: ...
+    def __rsub__(self, other: datetime) -> datetime:
+        ...
 
     def __rsub__(self, other: object) -> Duration | datetime | NotImplementedType:
         if isinstance(other, datetime):
@@ -168,7 +173,7 @@ class Duration:
         magnitude, remainder = divmod(abs(self.nanoseconds), 1_000)
         if remainder and not truncate:
             raise ValueError(
-                'duration has sub-microsecond precision; use truncate=True to discard it'
+                    'duration has sub-microsecond precision; use truncate=True to discard it'
             )
 
         microseconds = -magnitude if self.nanoseconds < 0 else magnitude
@@ -215,7 +220,6 @@ class Duration:
 
         return cls(nanoseconds=nanoseconds)
 
-
 def _from_nanoseconds(value: int) -> Duration:
     """Build an internal result whose integer value is already validated."""
     result = object.__new__(Duration)
@@ -223,15 +227,12 @@ def _from_nanoseconds(value: int) -> Duration:
 
     return result
 
-
 def _timedelta_nanoseconds(value: timedelta) -> int:
     return ((value.days * 86_400 + value.seconds) * 1_000_000 + value.microseconds) * 1_000
-
 
 def _require_int(value: int, name: str) -> None:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f'{name} must be an int')
-
 
 def _fraction_nanoseconds(fraction: str, multiplier: int) -> int:
     if len(fraction) <= 64:
@@ -245,7 +246,6 @@ def _fraction_nanoseconds(fraction: str, multiplier: int) -> int:
         result = (result + int(fraction[start:end]) * multiplier) // _DECIMAL_SCALES[end - start]
 
     return result
-
 
 def parse(text: str) -> Duration:
     """
@@ -273,7 +273,7 @@ def parse(text: str) -> Duration:
             position += 1
 
         if position != match.end():
-            unit = text[match.start(2) : position]
+            unit = text[match.start(2): position]
 
         multiplier = _MULTIPLIERS.get(unit.lower())
         if multiplier is None:
@@ -301,7 +301,6 @@ def parse(text: str) -> Duration:
         raise ValueError('no duration found')
 
     return _from_nanoseconds(total)
-
 
 def format_duration(value: Duration | timedelta, *, max_units: Optional[int] = None) -> str:
     """

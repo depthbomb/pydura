@@ -14,7 +14,6 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from importlib.util import module_from_spec, spec_from_file_location
 
-
 def _load_baseline(path: Path) -> ModuleType:
     spec = spec_from_file_location('_pydura_baseline', path)
     if spec is None or spec.loader is None:
@@ -26,13 +25,11 @@ def _load_baseline(path: Path) -> ModuleType:
 
     return baseline
 
-
 def _ignore_invalid(parse: Callable, text: str) -> None:
     try:
         parse(text)
     except ValueError:
         pass
-
 
 def _cases(implementation: ModuleType) -> dict[str, tuple[Callable, int]]:
     parse = implementation.parse
@@ -49,35 +46,34 @@ def _cases(implementation: ModuleType) -> dict[str, tuple[Callable, int]]:
     cases = {name: (partial(parse, text), 10_000) for name, text in samples.items()}
     cases['parse long fraction'] = (partial(parse, '0.' + '3' * 10_000 + 'm'), 100)
     cases['parse unknown units'] = (partial(parse, '999 elephants, ' * 100 + '1h'), 200)
-    cases['reject prose 1MiB'] = (partial(_ignore_invalid, parse, 'x' * 2**20), 2)
-    cases['reject unit 1MiB'] = (partial(_ignore_invalid, parse, '1' + 'X' * 2**20), 2)
+    cases['reject prose 1MiB'] = (partial(_ignore_invalid, parse, 'x' * 2 ** 20), 2)
+    cases['reject unit 1MiB'] = (partial(_ignore_invalid, parse, '1' + 'X' * 2 ** 20), 2)
     full = parse(samples['parse compact'])
     short = duration(hours=1)
     delta = timedelta(hours=1)
     base = datetime(2026, 1, 1, tzinfo=UTC)
     cases.update(
-        {
-            'construct nanoseconds': (partial(duration, nanoseconds=1), 20_000),
-            'construct mixed units': (partial(duration, days=1, hours=3, seconds=5), 20_000),
-            'format all units': (partial(format_duration, full), 10_000),
-            'format short': (partial(format_duration, short), 20_000),
-            'format timedelta': (partial(format_duration, delta), 20_000),
-            'add durations': (lambda: short + short, 20_000),
-            'add timedelta': (lambda: short + delta, 20_000),
-            'multiply': (lambda: short * 3, 20_000),
-            'from timedelta': (partial(duration.from_timedelta, delta), 20_000),
-            'to timedelta': (short.to_timedelta, 20_000),
-            'add UTC datetime': (partial(short.add_to, base), 20_000),
-        }
+            {
+                'construct nanoseconds': (partial(duration, nanoseconds=1), 20_000),
+                'construct mixed units': (partial(duration, days=1, hours=3, seconds=5), 20_000),
+                'format all units': (partial(format_duration, full), 10_000),
+                'format short': (partial(format_duration, short), 20_000),
+                'format timedelta': (partial(format_duration, delta), 20_000),
+                'add durations': (lambda: short + short, 20_000),
+                'add timedelta': (lambda: short + delta, 20_000),
+                'multiply': (lambda: short * 3, 20_000),
+                'from timedelta': (partial(duration.from_timedelta, delta), 20_000),
+                'to timedelta': (short.to_timedelta, 20_000),
+                'add UTC datetime': (partial(short.add_to, base), 20_000),
+            }
     )
 
     return cases
 
-
 def main() -> None:
     parser = ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--baseline', type=Path, help='saved _duration.py to compare in this process'
+            '--baseline', type=Path, help='saved _duration.py to compare in this process'
     )
     parser.add_argument('--json', type=Path, help='write benchmark measurements to this file')
     parser.add_argument('--repeat', type=int, default=7)
@@ -112,11 +108,11 @@ def main() -> None:
             before = median(baseline_times)
             saved = (1 - after / before) * 100
             result.update(
-                {
-                    'before_us': before,
-                    'before_samples_us': baseline_times,
-                    'less_time_percent': saved,
-                }
+                    {
+                        'before_us': before,
+                        'before_samples_us': baseline_times,
+                        'less_time_percent': saved,
+                    }
             )
             print(f'{name:26s} {before:12.3f} {after:12.3f} {saved:11.1f}%')
         else:
@@ -126,13 +122,12 @@ def main() -> None:
 
     if args.json:
         args.json.write_text(
-            dumps(
-                {'python': python_version(), 'repeat': args.repeat, 'cases': measurements}, indent=2
-            )
-            + '\n',
-            encoding='utf-8',
+                dumps(
+                        {'python': python_version(), 'repeat': args.repeat, 'cases': measurements}, indent=2
+                )
+                + '\n',
+                encoding='utf-8',
         )
-
 
 if __name__ == '__main__':
     main()
