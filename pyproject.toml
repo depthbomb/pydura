@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydura"
+version = "0.1.0"
+description = "Parse, format, and apply human-readable durations with nanosecond precision."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+authors = [{ name = "depthbomb" }]
+keywords = ["duration", "time", "parsing", "timedelta", "nanoseconds"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Documentation = "https://github.com/depthbomb/pydura#readme"
+Source = "https://github.com/depthbomb/pydura"
+Issues = "https://github.com/depthbomb/pydura/issues"
+Releases = "https://github.com/depthbomb/pydura/releases"
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "hypothesis>=6.130",
+    "mypy>=1.15",
+    "pytest>=8.3",
+    "pytest-cov>=6",
+    "ruff>=0.11",
+    "twine>=6",
+    "tzdata>=2025.2",
+]
+
+[tool.setuptools.packages.find]
+include = ["pydura*"]
+
+[tool.setuptools.package-data]
+pydura = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP"]
+ignore = ["UP045"]
+
+[tool.ruff.format]
+quote-style = "single"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["pydura"]
