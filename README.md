@@ -40,18 +40,18 @@ parse('wait 1 hour and another 30 minutes')
 Units are case-insensitive, and whitespace between a number and its unit is fine.
 Here are the supported spellings:
 
-| Unit | Spellings |
-| --- | --- |
-| Year | `y`, `yr`, `yrs`, `year`, `years` |
-| Month | `mo`, `mon`, `mons`, `month`, `months` |
-| Week | `w`, `wk`, `wks`, `week`, `weeks` |
-| Day | `d`, `day`, `days` |
-| Hour | `h`, `hr`, `hrs`, `hour`, `hours` |
-| Minute | `m`, `min`, `mins`, `minute`, `minutes` |
-| Second | `s`, `sec`, `secs`, `second`, `seconds` |
-| Millisecond | `ms`, `msec`, `msecs`, `millisecond`, `milliseconds` |
+| Unit        | Spellings                                               |
+|-------------|---------------------------------------------------------|
+| Year        | `y`, `yr`, `yrs`, `year`, `years`                       |
+| Month       | `mo`, `mon`, `mons`, `month`, `months`                  |
+| Week        | `w`, `wk`, `wks`, `week`, `weeks`                       |
+| Day         | `d`, `day`, `days`                                      |
+| Hour        | `h`, `hr`, `hrs`, `hour`, `hours`                       |
+| Minute      | `m`, `min`, `mins`, `minute`, `minutes`                 |
+| Second      | `s`, `sec`, `secs`, `second`, `seconds`                 |
+| Millisecond | `ms`, `msec`, `msecs`, `millisecond`, `milliseconds`    |
 | Microsecond | `us`, `µs`, `μs`, `usec`, `microsecond`, `microseconds` |
-| Nanosecond | `ns`, `nsec`, `nanosecond`, `nanoseconds` |
+| Nanosecond  | `ns`, `nsec`, `nanosecond`, `nanoseconds`               |
 
 A year is always **365 days**, a month **30 days**, a week **7 days**, and a day
 **24 hours**. These are elapsed durations, so adding a month won't adjust for
@@ -182,8 +182,6 @@ python -m build
 python -m twine check --strict dist/*
 python benchmarks/benchmark.py
 ```
-
-Ruff handles linting only. Code formatting is maintained manually.
 
 The benchmark runner covers parsing, formatting, arithmetic, and large inputs.
 Pass `--baseline /path/to/saved_duration.py` to compare with a saved copy of
