@@ -177,12 +177,13 @@ With the project's virtual environment active:
 python -m pip install -e ".[dev]"
 python -m pytest --cov=pydura --cov-branch
 python -m ruff check .
-python -m ruff format --check .
 python -m mypy
 python -m build
 python -m twine check --strict dist/*
 python benchmarks/benchmark.py
 ```
+
+Ruff handles linting only. Code formatting is maintained manually.
 
 The benchmark runner covers parsing, formatting, arithmetic, and large inputs.
 Pass `--baseline /path/to/saved_duration.py` to compare with a saved copy of
