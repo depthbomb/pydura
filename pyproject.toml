@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydura"
-version = "0.1.0"
+version = "0.1.1"
 description = "Parse, format, and apply human-readable durations with nanosecond precision."
 readme = "README.md"
 requires-python = ">=3.14"
