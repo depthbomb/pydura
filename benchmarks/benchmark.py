@@ -45,11 +45,16 @@ def _cases(implementation: ModuleType) -> dict[str, tuple[Callable, int]]:
     }
     cases = {name: (partial(parse, text), 10_000) for name, text in samples.items()}
     cases['parse long fraction'] = (partial(parse, '0.' + '3' * 10_000 + 'm'), 100)
+    cases['parse fraction 256 digits'] = (partial(parse, '0.' + '9' * 256 + 'y'), 2_000)
+    cases['parse fraction 100k digits'] = (partial(parse, '0.' + '3' * 100_000 + 'm'), 10)
+    cases['parse fraction zero tail'] = (partial(parse, '0.5' + '0' * 10_000 + 'y'), 100)
     cases['parse unknown units'] = (partial(parse, '999 elephants, ' * 100 + '1h'), 200)
     cases['reject prose 1MiB'] = (partial(_ignore_invalid, parse, 'x' * 2 ** 20), 2)
     cases['reject unit 1MiB'] = (partial(_ignore_invalid, parse, '1' + 'X' * 2 ** 20), 2)
     full = parse(samples['parse compact'])
     short = duration(hours=1)
+    negative = duration(hours=-1)
+    fractional = duration(nanoseconds=-1_501)
     delta = timedelta(hours=1)
     base = datetime(2026, 1, 1, tzinfo=UTC)
     cases.update(
@@ -60,10 +65,14 @@ def _cases(implementation: ModuleType) -> dict[str, tuple[Callable, int]]:
                 'format short': (partial(format_duration, short), 20_000),
                 'format timedelta': (partial(format_duration, delta), 20_000),
                 'add durations': (lambda: short + short, 20_000),
+                'subtract durations': (lambda: short - short, 20_000),
                 'add timedelta': (lambda: short + delta, 20_000),
+                'subtract timedelta': (lambda: short - delta, 20_000),
                 'multiply': (lambda: short * 3, 20_000),
                 'from timedelta': (partial(duration.from_timedelta, delta), 20_000),
                 'to timedelta': (short.to_timedelta, 20_000),
+                'to negative timedelta': (negative.to_timedelta, 20_000),
+                'truncate timedelta': (partial(fractional.to_timedelta, truncate=True), 20_000),
                 'add UTC datetime': (partial(short.add_to, base), 20_000),
             }
     )

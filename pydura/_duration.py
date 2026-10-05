@@ -20,7 +20,9 @@ _UNITS = (
 _MULTIPLIERS = {alias: multiplier for _, multiplier, aliases in _UNITS for alias in aliases.split()}
 _MULTIPLIERS.update({'µſ': 1_000, 'μſ': 1_000})
 _FORMAT_UNITS = tuple((name, name + 's', multiplier) for name, multiplier, _ in _UNITS)
-_DECIMAL_SCALES: tuple[int, ...] = tuple(10 ** exponent for exponent in range(65))
+# Stay below Python's minimum configurable integer-string limit (640 digits).
+_DECIMAL_BLOCK_DIGITS = 256
+_DECIMAL_SCALES: tuple[int, ...] = tuple(10 ** exponent for exponent in range(_DECIMAL_BLOCK_DIGITS + 1))
 _CONSTRUCTOR_UNITS = (
     'weeks',
     'days',
@@ -56,8 +58,13 @@ class Duration:
             microseconds: int = 0,
             nanoseconds: int = 0,
     ) -> None:
-        amounts = (weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds)
-        if not all(type(amount) is int for amount in amounts):
+        if (
+                type(weeks) is not int or type(days) is not int or type(hours) is not int
+                or type(minutes) is not int or type(seconds) is not int
+                or type(milliseconds) is not int or type(microseconds) is not int
+                or type(nanoseconds) is not int
+        ):
+            amounts = (weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds)
             for name, amount in zip(_CONSTRUCTOR_UNITS, amounts, strict=True):
                 _require_int(amount, name)
 
@@ -235,14 +242,14 @@ def _require_int(value: int, name: str) -> None:
         raise TypeError(f'{name} must be an int')
 
 def _fraction_nanoseconds(fraction: str, multiplier: int) -> int:
-    if len(fraction) <= 64:
+    if len(fraction) <= _DECIMAL_BLOCK_DIGITS:
         return int(fraction) * multiplier // _DECIMAL_SCALES[len(fraction)]
 
     # Process decimal blocks right to left. Each division discards only digits
     # that cannot affect the eventual whole-nanosecond result.
     result = 0
-    for end in range(len(fraction), 0, -18):
-        start = max(0, end - 18)
+    for end in range(len(fraction), 0, -_DECIMAL_BLOCK_DIGITS):
+        start = max(0, end - _DECIMAL_BLOCK_DIGITS)
         result = (result + int(fraction[start:end]) * multiplier) // _DECIMAL_SCALES[end - start]
 
     return result

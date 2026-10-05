@@ -3,6 +3,7 @@ from fractions import Fraction
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from pydura import Duration, parse, format_duration
+from sys import get_int_max_str_digits, set_int_max_str_digits
 
 @pytest.mark.parametrize(
         ('text', 'nanoseconds'),
@@ -147,7 +148,7 @@ def test_sign_without_a_number_is_not_a_duration(text: str) -> None:
     with pytest.raises(ValueError, match='no duration found'):
         parse(text)
 
-@pytest.mark.parametrize('size', [18, 19, 63, 64, 65, 72, 128, 1_000, 10_000])
+@pytest.mark.parametrize('size', [18, 19, 63, 64, 65, 72, 128, 255, 256, 257, 511, 512, 513, 1_000, 10_000])
 def test_long_fraction_thresholds_remain_exact(size: int) -> None:
     assert parse('0.' + '9' * size + 'y').nanoseconds == 365 * 86_400 * 10 ** 9 - 1
     assert parse('-0.5' + '0' * size + 'y').nanoseconds == -(365 * 86_400 * 10 ** 9 // 2)
@@ -162,15 +163,33 @@ def test_ascii_unit_prefix_cannot_match_part_of_unicode_word(text: str) -> None:
 def test_large_unknown_number_is_skipped_before_integer_conversion() -> None:
     assert parse('9' * 10_000 + 'elephants -1ns').nanoseconds == -1
 
+def test_long_fractions_with_minimum_integer_string_limit() -> None:
+    previous_limit = get_int_max_str_digits()
+    try:
+        set_int_max_str_digits(640)
+        assert parse('0.' + '9' * 10_000 + 'y').nanoseconds == 365 * 86_400 * 10 ** 9 - 1
+        assert parse('0.' + '0' * 10 + '3' * 10_000 + '4m').nanoseconds == 2
+        with pytest.raises(ValueError, match='digit'):
+            parse('9' * 641 + 'ns')
+    finally:
+        set_int_max_str_digits(previous_limit)
+
 @given(
         whole=st.integers(min_value=0, max_value=100),
-        digits=st.text(alphabet='0123456789', min_size=65, max_size=1_000),
-        multiplier=st.sampled_from([1, 1_000, 1_000_000, 1_000_000_000, 60_000_000_000]),
+        digits=st.text(alphabet='0123456789', min_size=257, max_size=2_000),
+        unit=st.sampled_from(
+                [
+                    ('ns', 1), ('us', 1_000), ('ms', 1_000_000), ('s', 1_000_000_000),
+                    ('m', 60_000_000_000), ('h', 3_600_000_000_000),
+                    ('d', 86_400_000_000_000), ('w', 604_800_000_000_000),
+                    ('mo', 2_592_000_000_000_000), ('y', 31_536_000_000_000_000),
+                ]
+        ),
 )
 @settings(max_examples=300)
 def test_block_fraction_arithmetic_against_rationals(
-        whole: int, digits: str, multiplier: int
+        whole: int, digits: str, unit: tuple[str, int]
 ) -> None:
-    aliases = {1: 'ns', 1_000: 'us', 1_000_000: 'ms', 1_000_000_000: 's', 60_000_000_000: 'm'}
+    alias, multiplier = unit
     number = f'{whole}.{digits}'
-    assert parse(number + aliases[multiplier]).nanoseconds == int(Fraction(number) * multiplier)
+    assert parse(number + alias).nanoseconds == int(Fraction(number) * multiplier)
